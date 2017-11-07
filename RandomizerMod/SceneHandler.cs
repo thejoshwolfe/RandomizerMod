@@ -34,10 +34,8 @@ namespace RandomizerMod
         // Token: 0x0600312E RID: 12590 RVA: 0x00127658 File Offset: 0x00125858
         public static void CheckForChanges(string destScene)
         {
-            if (!Randomizer.randomizer)
-            {
-                return;
-            }
+            Randomizer randomizer = Randomizer.CurrentInstance;
+            if (randomizer == null) return;
 
             try
             {
@@ -105,7 +103,7 @@ namespace RandomizerMod
             }
 
             // In case you got to the Desolate Dive tutorial without Desolate Dive, break all the floors open so you can get out.
-            if ((destScene == "Ruins1_30" || destScene == "Ruins1_32") && Randomizer._quake1 == 0 && Randomizer._quake2 == 0 && PlayerData.instance.killedMageLord)
+            if ((destScene == "Ruins1_30" || destScene == "Ruins1_32") && randomizer._quake1 == 0 && randomizer._quake2 == 0 && PlayerData.instance.killedMageLord)
             {
                 List<GameObject> objectsFromScene = SceneHandler.GetObjectsFromScene(destScene);
                 for (int i = 0; i < objectsFromScene.Count; i++)
@@ -310,10 +308,10 @@ namespace RandomizerMod
                     }
                     else if (obj.name.ToLower().Contains("water") || obj.name.ToLower().Contains("acid"))
                     {
-                        if (Randomizer.permutation.ContainsKey("Isma's Tear"))
+                        if (randomizer.permutation.ContainsKey(RandomizerEntries.IsmasTear.name))
                         {
                             bool ismasReplacement;
-                            RandomizerVar var = Randomizer.entries[Randomizer.permutation["Isma's Tear"]].entries[0];
+                            RandomizerVar var = randomizer.permutation[RandomizerEntries.IsmasTear.name].varNames[0];
 
                             if (var.type == typeof(bool))
                             {

@@ -8,10 +8,16 @@ namespace RandomizerMod
 {
     public class GUIController : MonoBehaviour
     {
+        public static bool loadedSave = false;
+
         private Dictionary<string, Texture2D> textures;
         public GUIStyle style;
 
         private string seedString;
+        public static int seed = -1;
+        public static bool hardMode;
+        public static bool randomize;
+
         private System.Random rnd = new System.Random();
 
         public GUIController()
@@ -19,7 +25,7 @@ namespace RandomizerMod
             this.seedString = rnd.Next().ToString();
         }
 
-        private void Awake()
+        public void Awake()
         {
             //Mod is gonna crash anyway if the textures aren't there, might as well throw a useful error for it
             //Should also make less ugly images at some point
@@ -74,7 +80,11 @@ namespace RandomizerMod
                     GUI.DrawTexture(new Rect(1515f, 1020f, 409f, 66f), this.textures["logo"], ScaleMode.ScaleToFit);
 
                     //Keeping track of whether a save has been loaded because LoadGame is called when still on the save profiles screen
-                    Randomizer.loadedSave = false;
+                    if (loadedSave == true)
+                    {
+                        RandomizerMod.Log("turning off loadedSave");
+                    }
+                    loadedSave = false;
                 }
 
                 //Thankfully not a CanvasGroup like the others, so we can use isActiveAndEnabled
@@ -85,32 +95,37 @@ namespace RandomizerMod
                     GUI.color = new Color(color.r, color.g, color.b, UIManager.instance.playModeMenuScreen.screenCanvasGroup.alpha);
 
                     //Create button for off/easy/hard
-                    if (!Randomizer.randomizer && this.TextureButton(this.textures["off"], new Rect(590f, 757f, 740f, 80f)))
+                    if (!randomize && this.TextureButton(this.textures["off"], new Rect(590f, 757f, 740f, 80f)))
                     {
-                        Randomizer.randomizer = true;
-                        Randomizer.hardMode = false;
+                        randomize = true;
+                        hardMode = false;
                     }
-                    else if (Randomizer.randomizer && !Randomizer.hardMode && this.TextureButton(this.textures["easy"], new Rect(590f, 757f, 740f, 80f)))
+                    else if (randomize && !hardMode && this.TextureButton(this.textures["easy"], new Rect(590f, 757f, 740f, 80f)))
                     {
-                        Randomizer.randomizer = true;
-                        Randomizer.hardMode = true;
+                        randomize = true;
+                        hardMode = true;
                     }
-                    else if (Randomizer.randomizer && Randomizer.hardMode && this.TextureButton(this.textures["hard"], new Rect(590f, 757f, 740f, 80f)))
+                    else if (randomize && hardMode && this.TextureButton(this.textures["hard"], new Rect(590f, 757f, 740f, 80f)))
                     {
-                        Randomizer.randomizer = false;
-                        Randomizer.hardMode = false;
+                        randomize = false;
+                        hardMode = false;
                     }
 
                     //Create text field for seed if randomizer is not off
-                    if (Randomizer.randomizer)
+                    if (randomize)
                     {
                         this.seedString = GUI.TextField(new Rect(200f, 757f, 330f, 82f), this.seedString, 9, this.style);
 
                         //Running Regex every frame is not efficient, but I figure the potential performance hit doesn't matter too much in the main menu
                         this.seedString = Regex.Replace(this.seedString, "[^0-9]", "");
-                        int.TryParse(this.seedString, out Randomizer.seed);
+                        int.TryParse(this.seedString, out seed);
 
-                        if (GUI.Button(new Rect(200f, 850f, 330f, 82f), "Log Randomization")) Randomizer.LogRandomization();
+                        if (GUI.Button(new Rect(200f, 850f, 330f, 82f), "Log Randomization"))
+                        {
+                            bool permadeath = PlayerData.instance.permadeathMode > 0;
+                            RandomizerMod.Log("permadeath: " + permadeath);
+                            Randomizer.Randomize(seed, hardMode, permadeath);
+                        }
                         if (GUI.Button(new Rect(100f, 757f, 75f, 82f), "New")) this.seedString = rnd.Next(1000000000).ToString();
                     }
                 }
@@ -120,10 +135,10 @@ namespace RandomizerMod
                 }
 
                 //Disable randomizer while looking at saves so that the variables don't carry over to places they shouldn't
-                if (UIManager.instance.menuState == GlobalEnums.MainMenuState.SAVE_PROFILES && !Randomizer.loadedSave)
+                if (UIManager.instance.menuState == GlobalEnums.MainMenuState.SAVE_PROFILES && !GUIController.loadedSave)
                 {
-                    Randomizer.randomizer = false;
-                    Randomizer.hardMode = false;
+                    randomize = false;
+                    hardMode = false;
                 }
             }
 
