@@ -6,11 +6,13 @@ namespace RandomizerMod
 {
     public static class RandomizerEntries
     {
+        public static List<RandomizerEntry> randomizedEntries = new List<RandomizerEntry>();
         public static Dictionary<string, RandomizerEntry> varNameToEntry = new Dictionary<string, RandomizerEntry>();
         public static Dictionary<string, RandomizerEntry> localeNameToEntry = new Dictionary<string, RandomizerEntry>();
 
         public static RandomizerEntry HARD = new PseudoEntry("HARD");
         public static RandomizerEntry CLASSIC = new PseudoEntry("CLASSIC");
+
         public static RandomizerEntry KEYITEMS = new EntryGroup((have) =>
             have(MothwingCloak) &&
             have(ShadeCloak) &&
@@ -492,18 +494,18 @@ namespace RandomizerMod
                 }
             }
 
+            randomizedEntries.Add(entry);
             foreach (RandomizerVar varName in entry.varNames)
             {
                 string val = (varName.value ?? "").ToString();
-                RandomizerEntries.varNameToEntry.Add(varName.name + val, entry);
+                varNameToEntry.Add(varName.name + val, entry);
             }
-
             for (int i = 0; i < entry.localeNames.Length; i++)
             {
                 // TODO: why are we ignoring the second and third locale names?
                 if (i != 1 && i != 2)
                 {
-                    RandomizerEntries.localeNameToEntry.Add(entry.localeNames[i], entry);
+                    localeNameToEntry.Add(entry.localeNames[i], entry);
                 }
             }
         }

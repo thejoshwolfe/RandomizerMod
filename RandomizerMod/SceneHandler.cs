@@ -308,10 +308,10 @@ namespace RandomizerMod
                     }
                     else if (obj.name.ToLower().Contains("water") || obj.name.ToLower().Contains("acid"))
                     {
-                        if (randomizer.permutation.ContainsKey(RandomizerEntries.IsmasTear.name))
+                        if (randomizer.permutation.ContainsKey(RandomizerEntries.IsmasTear))
                         {
                             bool ismasReplacement;
-                            RandomizerVar var = randomizer.permutation[RandomizerEntries.IsmasTear.name].varNames[0];
+                            RandomizerVar var = randomizer.permutation[RandomizerEntries.IsmasTear].varNames[0];
 
                             if (var.type == typeof(bool))
                             {

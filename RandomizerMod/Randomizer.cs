@@ -16,8 +16,7 @@ namespace RandomizerMod
     {
         public static Randomizer CurrentInstance = null;
 
-        public Dictionary<string, RandomizerEntry> entries = new Dictionary<string, RandomizerEntry>();
-        public Dictionary<string, RandomizerEntry> permutation = new Dictionary<string, RandomizerEntry>();
+        public Dictionary<RandomizerEntry, RandomizerEntry> permutation = new Dictionary<RandomizerEntry, RandomizerEntry>();
 
         private bool swappedCloak = false;
         private bool swappedGate = false;
@@ -52,8 +51,131 @@ namespace RandomizerMod
         }
         public void Randomize()
         {
-            System.Random rnd = new System.Random(seed);
-            // TODO: the randomization algorithm
+            System.Random rand = new System.Random(seed);
+
+            HashSet<RandomizerEntry> haveItems = new HashSet<RandomizerEntry>();
+            if (hardMode) haveItems.Add(RandomizerEntries.HARD);
+            if (!permadeath) haveItems.Add(RandomizerEntries.CLASSIC);
+
+            List<RandomizerEntry> yetToPlaceItems = new List<RandomizerEntry>(RandomizerEntries.randomizedEntries);
+            List<RandomizerEntry> yetToFindLocations = new List<RandomizerEntry>(RandomizerEntries.randomizedEntries);
+
+            RandomizerMod.Log("==== Randomization start ====");
+            while (yetToPlaceItems.Count > 0)
+            {
+                // find new locations
+                List<RandomizerEntry> newlyReachableLocations = new List<RandomizerEntry>();
+                for (int i = 0; i < yetToFindLocations.Count; i++)
+                {
+                    RandomizerEntry location = yetToFindLocations[i];
+                    if (location.ReachableWith(haveFuncWithItems(haveItems)))
+                    {
+                        RandomizerMod.Log("reachable: " + location);
+                        newlyReachableLocations.Add(location);
+                        swapAndPop(yetToFindLocations, i);
+                        i--;
+                    }
+                }
+                int groupSize = newlyReachableLocations.Count;
+                if (groupSize == 0) throw randomizationFailed(yetToFindLocations, yetToPlaceItems);
+
+                // Choose random items to place in these locations.
+                List<RandomizerEntry> newItems = new List<RandomizerEntry>();
+                for (int i = 0; i < groupSize; i++)
+                {
+                    int index;
+                    if (i == groupSize - 1 && yetToFindLocations.Count > 0)
+                    {
+                        // We'd better have chosen some items that let us progress.
+                        HashSet<RandomizerEntry> wouldBeItems = new HashSet<RandomizerEntry>(haveItems);
+                        wouldBeItems.UnionWith(newItems);
+
+                        bool foundNewLocations = false;
+                        foreach (RandomizerEntry location in yetToFindLocations)
+                        {
+                            if (location.ReachableWith(haveFuncWithItems(wouldBeItems)))
+                            {
+                                foundNewLocations = true;
+                                break;
+                            }
+                        }
+                        if (!foundNewLocations)
+                        {
+                            // Uh oh. We have to choose a progression item to place into this group.
+                            RandomizerMod.Log("panic mode activated");
+
+                            List<int> availableProgressionItemIndexes = new List<int>();
+                            for (int j = 0; j < yetToPlaceItems.Count; j++)
+                            {
+                                RandomizerEntry item = yetToPlaceItems[j];
+                                wouldBeItems.Add(item);
+                                foreach (RandomizerEntry location in yetToFindLocations)
+                                {
+                                    if (location.ReachableWith(haveFuncWithItems(wouldBeItems)))
+                                    {
+                                        RandomizerMod.Log("found progression item: " + item);
+                                        availableProgressionItemIndexes.Add(j);
+                                        break;
+                                    }
+                                }
+                                wouldBeItems.Remove(item);
+                            }
+                            // Theoretically possible to fail, but probably not with the current requirements database.
+                            if (availableProgressionItemIndexes.Count == 0) throw randomizationFailed(yetToFindLocations, yetToPlaceItems);
+
+                            index = availableProgressionItemIndexes[rand.Next(availableProgressionItemIndexes.Count)];
+                            newItems.Add(swapAndPop(yetToPlaceItems, index));
+                            continue;
+                        }
+                    }
+
+                    // Select some random item.
+                    index = rand.Next(yetToPlaceItems.Count);
+                    newItems.Add(swapAndPop(yetToPlaceItems, index));
+                }
+
+                // Now randomly assign each of these new items a location
+                for (int i = 0; i < groupSize; i++)
+                {
+                    RandomizerEntry location = newlyReachableLocations[i];
+                    int randomIndex = rand.Next(newItems.Count);
+                    RandomizerEntry item = swapAndPop(newItems, randomIndex);
+                    RandomizerMod.Log("Assigning location: " + location + " => " + item);
+                    permutation.Add(location, item);
+                    haveItems.Add(item);
+                }
+            }
+            RandomizerMod.Log("==== Randomization complete ====");
+        }
+        private static Predicate<RandomizerEntry> haveFuncWithItems(HashSet<RandomizerEntry> items)
+        {
+            Predicate<RandomizerEntry> haveFunc = null;
+            haveFunc = (entry) =>
+            {
+                if (entry is EntryGroup) return entry.ReachableWith(haveFunc);
+                return items.Contains(entry);
+            };
+            return haveFunc;
+        }
+        private static T swapAndPop<T>(List<T> list, int index)
+        {
+            T result = list[index];
+            list[index] = list[list.Count - 1];
+            list.RemoveAt(list.Count - 1);
+            return result;
+        }
+        private Exception randomizationFailed(List<RandomizerEntry> yetToFindLocations, List<RandomizerEntry> yetToPlaceItems)
+        {
+            RandomizerMod.Log("Randomization failed with " + yetToFindLocations.Count + "," + yetToPlaceItems.Count + " outstanding locations,items");
+            foreach (RandomizerEntry location in yetToFindLocations)
+            {
+                RandomizerMod.Log("Never reached location: " + location);
+            }
+            foreach (RandomizerEntry item in yetToPlaceItems)
+            {
+                RandomizerMod.Log("Never placed item: " + item);
+            }
+            return new Exception("Randomization failed");
         }
 
         public int GetPlayerDataInt(string name)
@@ -67,7 +189,7 @@ namespace RandomizerMod
             RandomizerEntry requestedEntry;
             RandomizerEntry randomizedEntry;
 
-            if (RandomizerEntries.varNameToEntry.TryGetValue(name, out requestedEntry) && permutation.TryGetValue(requestedEntry.name, out randomizedEntry))
+            if (RandomizerEntries.varNameToEntry.TryGetValue(name, out requestedEntry) && permutation.TryGetValue(requestedEntry, out randomizedEntry))
             {
                 // randomized
 
@@ -131,7 +253,7 @@ namespace RandomizerMod
             RandomizerEntry randomizedEntry;
 
             //Check if var is in data before running randomizer code
-            if (RandomizerEntries.varNameToEntry.TryGetValue(nameVal, out requestedEntry) && permutation.TryGetValue(requestedEntry.name, out randomizedEntry))
+            if (RandomizerEntries.varNameToEntry.TryGetValue(nameVal, out requestedEntry) && permutation.TryGetValue(requestedEntry, out randomizedEntry))
             {
                 //Randomizer breaks progression, so we need to ensure the player never gets shade cloak before mothwing cloak
                 if (randomizedEntry == RandomizerEntries.ShadeCloak && !PlayerData.instance.hasDash && !PlayerData.instance.canDash)
@@ -290,7 +412,7 @@ namespace RandomizerMod
             RandomizerEntry randomizedEntry;
 
             //Don't run randomizer if bool is not in the loaded data
-            if (RandomizerEntries.varNameToEntry.TryGetValue(name, out requestedEntry) && permutation.TryGetValue(requestedEntry.name, out randomizedEntry))
+            if (RandomizerEntries.varNameToEntry.TryGetValue(name, out requestedEntry) && permutation.TryGetValue(requestedEntry, out randomizedEntry))
             {
                 int index = requestedEntry.GetVarNameIndex(name);
 
@@ -337,7 +459,7 @@ namespace RandomizerMod
             RandomizerEntry randomizedEntry;
 
             //Check if bool is in data before running randomizer code
-            if (RandomizerEntries.varNameToEntry.TryGetValue(name, out requestedEntry) && permutation.TryGetValue(requestedEntry.name, out randomizedEntry))
+            if (RandomizerEntries.varNameToEntry.TryGetValue(name, out requestedEntry) && permutation.TryGetValue(requestedEntry, out randomizedEntry))
             {
                 //Randomizer breaks progression, so we need to ensure the player never gets shade cloak before mothwing cloak
                 if (randomizedEntry == RandomizerEntries.ShadeCloak && !PlayerData.instance.hasDash && !PlayerData.instance.canDash)
@@ -430,8 +552,8 @@ namespace RandomizerMod
         {
             try
             {
-                string key = permutation.FirstOrDefault((KeyValuePair<string, RandomizerEntry> x) => x.Value == entry1).Key;
-                string key2 = permutation.FirstOrDefault((KeyValuePair<string, RandomizerEntry> x) => x.Value == entry2).Key;
+                RandomizerEntry key = permutation.FirstOrDefault((x) => x.Value == entry1).Key;
+                RandomizerEntry key2 = permutation.FirstOrDefault((x) => x.Value == entry2).Key;
                 permutation[key] = entry2;
                 permutation[key2] = entry1;
             }

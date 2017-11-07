@@ -43,6 +43,14 @@ namespace RandomizerMod
             }
             return -1;
         }
+        public override string ToString()
+        {
+            return name.ToString();
+        }
+        public override int GetHashCode()
+        {
+            return name.GetHashCode();
+        }
     }
     public class PseudoEntry : RandomizerEntry
     {
@@ -52,7 +60,7 @@ namespace RandomizerMod
     }
     public class EntryGroup : RandomizerEntry
     {
-        public EntryGroup(ReachableWithFunc ReachableWith) : base(null, null, ReachableWith, RandomizerType.PSEUDO, null)
+        public EntryGroup(ReachableWithFunc ReachableWith) : base("<group>", null, ReachableWith, RandomizerType.PSEUDO, null)
         {
         }
     }

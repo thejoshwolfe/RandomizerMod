@@ -14,7 +14,6 @@ namespace RandomizerMod
                 return Language.Language.GetInternal(key, sheet);
             }
 
-
             //Experimental change, keeping the previous check commented here in case we need it back
             //string stack = new StackTrace().ToString();
             //if (!stack.Contains("at HutongGames.PlayMaker.Fsm.DoTransition(HutongGames.PlayMaker.FsmTransition transition, Boolean isGlobal)") && (!stack.Contains("at HutongGames.PlayMaker.Fsm.UpdateState(HutongGames.PlayMaker.FsmState state)") || key.Contains("CHARM_NAME_") || key.Contains("INV_NAME_TRINKET")))
@@ -26,7 +25,7 @@ namespace RandomizerMod
                 {
                     RandomizerEntry randomizedEntry;
 
-                    if (randomizer.permutation.TryGetValue(pickup.name, out randomizedEntry))
+                    if (randomizer.permutation.TryGetValue(pickup, out randomizedEntry))
                     {
                         //Check to make sure we're not showing the player shade cloak when we don't intend to give it to them
                         if (randomizedEntry == RandomizerEntries.ShadeCloak && !PlayerData.instance.hasDash)
@@ -61,12 +60,8 @@ namespace RandomizerMod
                             randomizedEntry = RandomizerEntries.HowlingWraiths;
                         }
 
-                        RandomizerEntry switchedEntry;
-                        if (randomizer.entries.TryGetValue(randomizedEntry.name, out switchedEntry))
-                        {
-                            string[] switchedLocale = switchedEntry.localeNames[0].Split('.');
-                            return Language.Language.GetInternal(switchedLocale[1], switchedLocale[0]);
-                        }
+                        string[] switchedLocale = randomizedEntry.localeNames[0].Split('.');
+                        return Language.Language.GetInternal(switchedLocale[1], switchedLocale[0]);
                     }
                 }
             }
