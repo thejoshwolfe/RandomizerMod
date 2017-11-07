@@ -123,7 +123,6 @@ namespace RandomizerMod
                         if (GUI.Button(new Rect(200f, 850f, 330f, 82f), "Log Randomization"))
                         {
                             bool permadeath = PlayerData.instance.permadeathMode > 0;
-                            RandomizerMod.Log("permadeath: " + permadeath);
                             Randomizer.Randomize(seed, hardMode, permadeath);
                         }
                         if (GUI.Button(new Rect(100f, 757f, 75f, 82f), "New")) this.seedString = rnd.Next(1000000000).ToString();

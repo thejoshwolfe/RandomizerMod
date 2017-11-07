@@ -102,15 +102,22 @@ namespace RandomizerMod
         {
             Log("LoadGame()");
             bool permadeath = PlayerData.instance.permadeathMode > 0;
-            Log("permadeath: " + permadeath);
             GUIController.loadedSave = true;
 
-            if (!File.Exists(Application.persistentDataPath + @"\user" + profileId + ".rnd")) return;
+            try
             {
-                using (StreamReader streamReader = new StreamReader(Application.persistentDataPath + @"\user" + profileId + ".rnd"))
+                if (!File.Exists(saveFileLocation(profileId))) return;
                 {
-                    Randomizer.CurrentInstance = Randomizer.LoadFrom(streamReader, permadeath);
+                    using (StreamReader streamReader = new StreamReader(saveFileLocation(profileId)))
+                    {
+                        Log("Loading from: " + saveFileLocation(profileId));
+                        Randomizer.CurrentInstance = Randomizer.LoadFrom(streamReader, permadeath);
+                    }
                 }
+            }
+            catch (Exception e)
+            {
+                Warning("failed to load randomizer data", e);
             }
         }
         public static void SaveGame(int profileId)
@@ -118,8 +125,9 @@ namespace RandomizerMod
             Log("SaveGame()");
             if (Randomizer.CurrentInstance != null)
             {
-                using (StreamWriter streamWriter = new StreamWriter(Application.persistentDataPath + @"\user" + profileId + ".rnd"))
+                using (StreamWriter streamWriter = new StreamWriter(saveFileLocation(profileId)))
                 {
+                    Log("Saving to: " + saveFileLocation(profileId));
                     Randomizer.CurrentInstance.SaveGame(streamWriter);
                 }
             }
@@ -128,16 +136,20 @@ namespace RandomizerMod
         {
             Log("NewGame()");
             bool permadeath = PlayerData.instance.permadeathMode > 0;
-            Log("permadeath: " + permadeath);
             Randomizer.CurrentInstance = Randomizer.Randomize(GUIController.seed, GUIController.hardMode, permadeath);
         }
         public static void DeleteGame(int profileId)
         {
             Log("DeleteGame()");
-            if (File.Exists(Application.persistentDataPath + @"\user" + profileId + ".rnd"))
+            if (File.Exists(saveFileLocation(profileId)))
             {
-                File.Delete(Application.persistentDataPath + @"\user" + profileId + ".rnd");
+                Log("Deleting: " + saveFileLocation(profileId));
+                File.Delete(saveFileLocation(profileId));
             }
+        }
+        private static string saveFileLocation(int profileId)
+        {
+            return Application.persistentDataPath + @"\user" + profileId + ".rnd";
         }
 
         public static void Warning(string message, Exception e)

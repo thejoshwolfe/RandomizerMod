@@ -41,6 +41,7 @@ namespace RandomizerMod
             this.seed = seed;
             this.hardMode = hardMode;
             this.permadeath = permadeath;
+            RandomizerMod.Log("Randomizer settings: seed:" + seed + (hardMode ? " hard" : "") + (permadeath ? " permadeath" : ""));
         }
 
         public static Randomizer Randomize(int seed, bool hardMode, bool permadeath)
@@ -60,7 +61,10 @@ namespace RandomizerMod
             List<RandomizerEntry> yetToPlaceItems = new List<RandomizerEntry>(RandomizerEntries.randomizedEntries);
             List<RandomizerEntry> yetToFindLocations = new List<RandomizerEntry>(RandomizerEntries.randomizedEntries);
 
+            RandomizerMod.Log("=============================");
             RandomizerMod.Log("==== Randomization start ====");
+            RandomizerMod.Log("=============================");
+
             while (yetToPlaceItems.Count > 0)
             {
                 // find new locations
@@ -102,7 +106,7 @@ namespace RandomizerMod
                         if (!foundNewLocations)
                         {
                             // Uh oh. We have to choose a progression item to place into this group.
-                            RandomizerMod.Log("panic mode activated");
+                            RandomizerMod.Log("forcing progression item into this group");
 
                             List<int> availableProgressionItemIndexes = new List<int>();
                             for (int j = 0; j < yetToPlaceItems.Count; j++)
@@ -113,7 +117,7 @@ namespace RandomizerMod
                                 {
                                     if (location.ReachableWith(haveFuncWithItems(wouldBeItems)))
                                     {
-                                        RandomizerMod.Log("found progression item: " + item);
+                                        RandomizerMod.Log("available progression item: " + item);
                                         availableProgressionItemIndexes.Add(j);
                                         break;
                                     }
@@ -145,7 +149,9 @@ namespace RandomizerMod
                     haveItems.Add(item);
                 }
             }
+            RandomizerMod.Log("================================");
             RandomizerMod.Log("==== Randomization complete ====");
+            RandomizerMod.Log("================================");
         }
         private static Predicate<RandomizerEntry> haveFuncWithItems(HashSet<RandomizerEntry> items)
         {
@@ -166,7 +172,7 @@ namespace RandomizerMod
         }
         private Exception randomizationFailed(List<RandomizerEntry> yetToFindLocations, List<RandomizerEntry> yetToPlaceItems)
         {
-            RandomizerMod.Log("Randomization failed with " + yetToFindLocations.Count + "," + yetToPlaceItems.Count + " outstanding locations,items");
+            RandomizerMod.Warning("Randomization failed with " + yetToFindLocations.Count + "," + yetToPlaceItems.Count + " outstanding locations,items");
             foreach (RandomizerEntry location in yetToFindLocations)
             {
                 RandomizerMod.Log("Never reached location: " + location);
@@ -566,9 +572,9 @@ namespace RandomizerMod
         //TODO: Hook GameManager.SaveGame to write save to the same file as everything else
         public void SaveGame(StreamWriter streamWriter)
         {
-            streamWriter.WriteLine(swappedCloak);
             streamWriter.WriteLine(seed);
             streamWriter.WriteLine(hardMode);
+            streamWriter.WriteLine(swappedCloak);
             streamWriter.WriteLine(swappedGate);
             streamWriter.WriteLine(swappedAwoken);
             streamWriter.WriteLine(swappedFireball);
@@ -588,6 +594,7 @@ namespace RandomizerMod
             int seed = Convert.ToInt32(streamReader.ReadLine());
             bool hardMode = Convert.ToBoolean(streamReader.ReadLine());
             Randomizer randomizer = new Randomizer(seed, hardMode, permadeath);
+            randomizer.Randomize();
 
             randomizer.swappedCloak = Convert.ToBoolean(streamReader.ReadLine());
             randomizer.swappedGate = Convert.ToBoolean(streamReader.ReadLine());
