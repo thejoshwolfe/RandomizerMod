@@ -27,25 +27,19 @@ namespace RandomizerMod
 
         public void Awake()
         {
-            //Mod is gonna crash anyway if the textures aren't there, might as well throw a useful error for it
-            //Should also make less ugly images at some point
-            if (File.Exists("Randomizer\\logo.png") && File.Exists("Randomizer\\off.png") && File.Exists("Randomizer\\easy.png") && File.Exists("Randomizer\\hard.png"))
-            {
-                this.textures = new Dictionary<string, Texture2D>();
-                Texture2D logo = new Texture2D(1, 1);
-                Texture2D off = new Texture2D(1, 1);
-                Texture2D easy = new Texture2D(1, 1);
-                Texture2D hard = new Texture2D(1, 1);
-                logo.LoadImage(File.ReadAllBytes("Randomizer\\logo.png"));
-                off.LoadImage(File.ReadAllBytes("Randomizer\\off.png"));
-                easy.LoadImage(File.ReadAllBytes("Randomizer\\easy.png"));
-                hard.LoadImage(File.ReadAllBytes("Randomizer\\hard.png"));
-                this.textures.Add("logo", logo);
-                this.textures.Add("off", off);
-                this.textures.Add("easy", easy);
-                this.textures.Add("hard", hard);
-            }
-            else throw new FileNotFoundException("Randomizer could not find all menu images");
+            this.textures = new Dictionary<string, Texture2D>();
+            Texture2D logo = new Texture2D(1, 1);
+            Texture2D off = new Texture2D(1, 1);
+            Texture2D easy = new Texture2D(1, 1);
+            Texture2D hard = new Texture2D(1, 1);
+            logo.LoadImage(Properties.Resources.logo_png);
+            off.LoadImage(Properties.Resources.off_png);
+            easy.LoadImage(Properties.Resources.easy_png);
+            hard.LoadImage(Properties.Resources.hard_png);
+            this.textures.Add("logo", logo);
+            this.textures.Add("off", off);
+            this.textures.Add("easy", easy);
+            this.textures.Add("hard", hard);
         }
 
         public void OnGUI()

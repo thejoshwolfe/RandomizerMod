@@ -56,12 +56,29 @@
     <Compile Include="GUIController.cs" />
     <Compile Include="LanguageHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
     <Compile Include="Randomizer.cs" />
     <Compile Include="RandomizerEntry.cs" />
     <Compile Include="Entries.cs" />
     <Compile Include="RandomizerMod.cs" />
     <Compile Include="RoomChanger.cs" />
     <Compile Include="SceneHandler.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\easy.png.data" />
+    <None Include="Resources\hard.png.data" />
+    <None Include="Resources\logo.png.data" />
+    <None Include="Resources\off.png.data" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
