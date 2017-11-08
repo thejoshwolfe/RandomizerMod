@@ -144,7 +144,7 @@ namespace RandomizerMod
                     RandomizerEntry location = newlyReachableLocations[i];
                     int randomIndex = rand.Next(newItems.Count);
                     RandomizerEntry item = swapAndPop(newItems, randomIndex);
-                    RandomizerMod.Log("Assigning location: " + location + " => " + item);
+                    RandomizerMod.Log("Assigning location: " + location + " => " + item + (item.isSignificant ? "    <------------------" : ""));
                     permutation.Add(location, item);
                     haveItems.Add(item);
                 }

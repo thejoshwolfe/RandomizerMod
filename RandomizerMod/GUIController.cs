@@ -120,9 +120,14 @@ namespace RandomizerMod
                         this.seedString = Regex.Replace(this.seedString, "[^0-9]", "");
                         int.TryParse(this.seedString, out seed);
 
-                        if (GUI.Button(new Rect(200f, 850f, 330f, 82f), "Log Randomization"))
+                        if (GUI.Button(new Rect(100f, 365f, 250f, 110f), "Log Randomization"))
                         {
-                            bool permadeath = PlayerData.instance.permadeathMode > 0;
+                            bool permadeath = false;
+                            Randomizer.Randomize(seed, hardMode, permadeath);
+                        }
+                        if (GUI.Button(new Rect(100f, 593f, 250f, 110f), "Log Randomization"))
+                        {
+                            bool permadeath = true;
                             Randomizer.Randomize(seed, hardMode, permadeath);
                         }
                         if (GUI.Button(new Rect(100f, 757f, 75f, 82f), "New")) this.seedString = rnd.Next(1000000000).ToString();

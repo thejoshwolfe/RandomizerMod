@@ -21,13 +21,15 @@ namespace RandomizerMod
     public class RandomizerEntry
     {
         public string name;
+        public bool isSignificant;
         public RandomizerVar[] varNames;
         public ReachableWithFunc ReachableWith;
         public RandomizerType type;
         public string[] localeNames;
-        public RandomizerEntry(string name, RandomizerVar[] varNames, ReachableWithFunc ReachableWith, RandomizerType type, string[] localeNames)
+        public RandomizerEntry(string name, bool isSignificant, RandomizerVar[] varNames, ReachableWithFunc ReachableWith, RandomizerType type, string[] localeNames)
         {
             this.name = name;
+            this.isSignificant = isSignificant;
             this.varNames = varNames;
             this.ReachableWith = ReachableWith;
             this.type = type;
@@ -54,13 +56,13 @@ namespace RandomizerMod
     }
     public class PseudoEntry : RandomizerEntry
     {
-        public PseudoEntry(string name) : base(name, null, null, RandomizerType.PSEUDO, null)
+        public PseudoEntry(string name) : base(name, false, null, null, RandomizerType.PSEUDO, null)
         {
         }
     }
     public class EntryGroup : RandomizerEntry
     {
-        public EntryGroup(ReachableWithFunc ReachableWith) : base("<group>", null, ReachableWith, RandomizerType.PSEUDO, null)
+        public EntryGroup(ReachableWithFunc ReachableWith) : base("<group>", false, null, ReachableWith, RandomizerType.PSEUDO, null)
         {
         }
     }
