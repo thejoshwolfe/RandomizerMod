@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 
@@ -58,9 +58,9 @@ namespace RandomizerMod
         public static RandomizerEntry REACH_SALUBRA = new EntryGroup((have) =>
             have(MantisClaw) ||
             have(DASH_CLOAK) ||
-            have(MonarchWings) || 
-            have(CrystalHeart) || 
-            (have(HARD) && have(FIREBALL)) || 
+            have(MonarchWings) ||
+            have(CrystalHeart) ||
+            (have(HARD) && have(FIREBALL)) ||
             (have(HARD) && have(CLASSIC))
         );
         public static RandomizerEntry REACH_LEG_EATER = new EntryGroup((have) =>
